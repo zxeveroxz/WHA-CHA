@@ -3,210 +3,138 @@ const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const { Client,MessageMedia,LocalAuth } = require('whatsapp-web.js');
+const { Client, MessageMedia, LocalAuth } = require('whatsapp-web.js');
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
+const qr = require('qrcode');
 
-let client;
-let sessionData;
-
-
-
+let client = null;
+var qr_text =null;
 
 
-const IniciarConexion = () =>{
+
+const IniciarConexion = () => {
     console.log("Iniciando la conexion");
-    client = new Client({authStrategy: new LocalAuth(), puppeteer: { headless: true }});
+    client = new Client({ authStrategy: new LocalAuth(), puppeteer: { headless: true } });
 
-    client.on('qr', (qr) => {        
-        qrcode.generate(qr,{small:true});
+    client.on('qr', (qr) => {
+       // qrcode.generate(qr, { small: true });
+       
     });
 
-    client.on('authenticated',()=>{
+    client.on('authenticated', () => {
         console.log('AUTHENTICATED');
+    });
+
+    client.on('auth_failure', msg => {
+        // Fired if session restore was unsuccessful
+        console.error('AUTHENTICATION FAILURE', msg);
     });
 
     client.initialize();
 }
 
-IniciarConexion();
 
+ 
+async function IniciarConexion2(res) {
+    console.log("Iniciando la conexion");
+     client =  new Client({ authStrategy: new LocalAuth(), puppeteer: { headless: false } });
 
-client.on('ready', () => {
-    console.log('READY');
-});
+    client.on('qr', (qr) => {
+        console.log("qrrr");
+        qr_text=qr;
+        ir_qr(res);
+    });
 
-client.on('message', async msg => {
-    console.log('MESSAGE RECEIVED', msg);
+    client.on('ready', () => {     
+        console.log("Ready");   
+       activo(res);
+    });
 
-    if (msg.body === '!ping reply') {
-        // Send a new message as a reply to the current one
-        msg.reply('pong');
+    client.on('auth_failure', msg => {
+        console.error('AUTHENTICATION FAILURE', msg);
+    });
 
-    } else if (msg.body === '!ping') {
-        // Send a new message to the same chat
-        client.sendMessage(msg.from, 'pong');
+    await client.initialize();
+    console.log("ya");
+}
 
-    } else if (msg.body.startsWith('!sendto ')) {
-        // Direct send a new message to specific id
-        let number = msg.body.split(' ')[1];
-        let messageIndex = msg.body.indexOf(number) + number.length;
-        let message = msg.body.slice(messageIndex, msg.body.length);
-        number = number.includes('@c.us') ? number : `${number}@c.us`;
-        let chat = await msg.getChat();
-        chat.sendSeen();
-        client.sendMessage(number, message);
+const ir_qr = (res)=>{
+    //const encoded = Buffer.from(qr, 'utf8').toString('base64') ;
+    //console.log("ir_qr ",qr_text);
+    //console.log("se ejecuta qr", encoded);
+    res.status(301).redirect("/qr");
+}
 
-    } else if (msg.body.startsWith('!subject ')) {
-        // Change the group subject
-        let chat = await msg.getChat();
-        if (chat.isGroup) {
-            let newSubject = msg.body.slice(9);
-            chat.setSubject(newSubject);
-        } else {
-            msg.reply('This command can only be used in a group!');
-        }
-    } else if (msg.body.startsWith('!echo ')) {
-        // Replies with the same message
-        msg.reply(msg.body.slice(6));
-    } else if (msg.body.startsWith('!desc ')) {
-        // Change the group description
-        let chat = await msg.getChat();
-        if (chat.isGroup) {
-            let newDescription = msg.body.slice(6);
-            chat.setDescription(newDescription);
-        } else {
-            msg.reply('This command can only be used in a group!');
-        }
-    } else if (msg.body === '!leave') {
-        // Leave the group
-        let chat = await msg.getChat();
-        if (chat.isGroup) {
-            chat.leave();
-        } else {
-            msg.reply('This command can only be used in a group!');
-        }
-    } else if (msg.body.startsWith('!join ')) {
-        const inviteCode = msg.body.split(' ')[1];
-        try {
-            await client.acceptInvite(inviteCode);
-            msg.reply('Joined the group!');
-        } catch (e) {
-            msg.reply('That invite code seems to be invalid.');
-        }
-    } else if (msg.body === '!groupinfo') {
-        let chat = await msg.getChat();
-        if (chat.isGroup) {
-            msg.reply(`
-                *Group Details*
-                Name: ${chat.name}
-                Description: ${chat.description}
-                Created At: ${chat.createdAt.toString()}
-                Created By: ${chat.owner.user}
-                Participant count: ${chat.participants.length}
-            `);
-        } else {
-            msg.reply('This command can only be used in a group!');
-        }
-    } else if (msg.body === '!chats') {
-        const chats = await client.getChats();
-        client.sendMessage(msg.from, `The bot has ${chats.length} chats open.`);
-    } else if (msg.body === '!info') {
-        let info = client.info;
-        client.sendMessage(msg.from, `
-            *Connection info*
-            User name: ${info.pushname}
-            My number: ${info.wid.user}
-            Platform: ${info.platform}
-        `);
-    } else if (msg.body === '!mediainfo' && msg.hasMedia) {
-        const attachmentData = await msg.downloadMedia();
-        msg.reply(`
-            *Media info*
-            MimeType: ${attachmentData.mimetype}
-            Filename: ${attachmentData.filename}
-            Data (length): ${attachmentData.data.length}
-        `);
-    } else if (msg.body === '!quoteinfo' && msg.hasQuotedMsg) {
-        const quotedMsg = await msg.getQuotedMessage();
-
-        quotedMsg.reply(`
-            ID: ${quotedMsg.id._serialized}
-            Type: ${quotedMsg.type}
-            Author: ${quotedMsg.author || quotedMsg.from}
-            Timestamp: ${quotedMsg.timestamp}
-            Has Media? ${quotedMsg.hasMedia}
-        `);
-    } else if (msg.body === '!resendmedia' && msg.hasQuotedMsg) {
-        const quotedMsg = await msg.getQuotedMessage();
-        if (quotedMsg.hasMedia) {
-            const attachmentData = await quotedMsg.downloadMedia();
-            client.sendMessage(msg.from, attachmentData, { caption: 'Here\'s your requested media.' });
-        }
-    } else if (msg.body === '!location') {
-        msg.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
-    } else if (msg.location) {
-        msg.reply(msg.location);
-    } else if (msg.body.startsWith('!status ')) {
-        const newStatus = msg.body.split(' ')[1];
-        await client.setStatus(newStatus);
-        msg.reply(`Status was updated to *${newStatus}*`);
-    } else if (msg.body === '!mention') {
-        const contact = await msg.getContact();
-        const chat = await msg.getChat();
-        chat.sendMessage(`Hi @${contact.number}!`, {
-            mentions: [contact]
-        });
-    } else if (msg.body === '!delete') {
-        if (msg.hasQuotedMsg) {
-            const quotedMsg = await msg.getQuotedMessage();
-            if (quotedMsg.fromMe) {
-                quotedMsg.delete(true);
-            } else {
-                msg.reply('I can only delete my own messages');
-            }
-        }
-    } else if (msg.body === '!pin') {
-        const chat = await msg.getChat();
-        await chat.pin();
-    } else if (msg.body === '!archive') {
-        const chat = await msg.getChat();
-        await chat.archive();
-    } else if (msg.body === '!mute') {
-        const chat = await msg.getChat();
-        // mute the chat for 20 seconds
-        const unmuteDate = new Date();
-        unmuteDate.setSeconds(unmuteDate.getSeconds() + 20);
-        await chat.mute(unmuteDate);
-    } else if (msg.body === '!typing') {
-        const chat = await msg.getChat();
-        // simulates typing in the chat
-        chat.sendStateTyping();
-    } else if (msg.body === '!recording') {
-        const chat = await msg.getChat();
-        // simulates recording audio in the chat
-        chat.sendStateRecording();
-    } else if (msg.body === '!clearstate') {
-        const chat = await msg.getChat();
-        // stops typing or recording in the chat
-        chat.clearState();
-    } else if (msg.body === '!jumpto') {
-        if (msg.hasQuotedMsg) {
-            const quotedMsg = await msg.getQuotedMessage();
-            client.interface.openChatWindowAt(quotedMsg.id._serialized);
-        }
-    } else if (msg.body === '!buttons') {
-        let button = new Buttons('Button body',[{body:'bt1'},{body:'bt2'},{body:'bt3'}],'title','footer');
-        client.sendMessage(msg.from, button);
-    } else if (msg.body === '!list') {
-        let sections = [{title:'sectionTitle',rows:[{title:'ListItem1', description: 'desc'},{title:'ListItem2'}]}];
-        let list = new List('List body','btnText',sections,'Title','footer');
-        client.sendMessage(msg.from, list);
-    } else if (msg.body === '!reaction') {
-        msg.react('👍');
+const activo = (res)=>{
+    
+    try {
+        res.send("Activo");
+        console.log("esta activo");
+       
+    } catch (error) {
+        console.log(error);
     }
+}
+
+const salir = (res)=>{
+    try {
+        client.destroy();
+        //client.logout();
+        client=null;
+        console.log("se salio del ws");
+    } catch (error) {
+        console.log("salir error: ");
+    }
+}
+
+const app = express();
+app.set('views',__dirname+'/views');
+app.set('view engine','ejs');
+
+
+app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true, parameterLimit: 50000, limit: '50mb' }));
+app.use(bodyParser.json({ limit: '50mb' }));
+
+app.get('/',  function (req, res) {
+    //res.send("inicindo");
+    if(client==null)
+        IniciarConexion2(res);
+    else
+    client.getState();
 });
 
-client.on('disconnected', (reason) => {
-    console.log('Client was logged out', reason);
+app.get("/qr", async function(req,res){
+
+    //console.log(req.query);
+    qr.toDataURL(qr_text,new Date ,function (err, url) {
+        if(err) return console.log("error occurred en el qr ",qr_text);
+        res.render("index",{'qr':url});
+      })
 });
+
+
+app.get("/iniciar", async function(req,res){
+   // await IniciarConexion2(res);
+});
+
+app.get("/activo",function(req,res){    
+    res.send("Ya esta ok");
+});
+
+app.get("/salir",function(req,res){    
+    salir(res);
+    res.send("ya salio");
+});
+
+
+
+
+http.createServer({
+    //key: fs.readFileSync('my_cert.key'),
+    //cert: fs.readFileSync('my_cert.crt')
+}, app).listen(3000, () => {
+    console.log("My HTTPS server listening on port 3000...");
+});
+
