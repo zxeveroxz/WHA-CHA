@@ -102,8 +102,8 @@ const activo = (res) => {
 
 const salir = async (res) => {
     try {
-        //await client.destroy();
-        await client.logout();
+        await client.destroy();
+        //await client.logout();
         client = null;
         console.log("se salio del ws");
     } catch (error) {
