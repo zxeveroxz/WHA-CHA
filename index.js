@@ -1,5 +1,8 @@
+const utmObj = require('utm-latlng');
+const utm=new utmObj('WGS 84');
 const { DownloaderHelper } = require('node-downloader-helper');
 const http = require('http');
+const axios = require('axios');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -8,6 +11,10 @@ const fs = require('fs');
 const path = require('path')
 const qrcode = require('qrcode-terminal');
 const qr = require('qrcode');
+const { parse } = require('path');
+
+const url_avisos_desague= "https://gisprd.sedapal.com.pe/arcgis/rest/services/Publicaciones/SGIO_SUR/MapServer/3/query?where=NCOD_CENTRO%3D7&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&having=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&queryByDistance=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&f=json";
+const url_avisos_agua= "https://gisprd.sedapal.com.pe/arcgis/rest/services/Publicaciones/SGIO_SUR/MapServer/2/query?where=NCOD_CENTRO%3D7&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&having=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&queryByDistance=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&f=json";
 
 let client = null;
 var qr_text = null;
@@ -130,12 +137,12 @@ const listenMessage = async () => {
             media.mimetype = "image/png";
             media.filename = "agua.png";
             await client.sendMessage('51998322450@c.us', media, { caption: 'Avisos en Proceso de Atencion de Agua' });
-/*
-            const media2 = await MessageMedia.fromUrl('http://localhost/api-sedapal/barra_des.php');
-            media.mimetype = "image/png";
-            media.filename = "desague.png";
-            await client.sendMessage('51998322450@c.us', media2, { caption: 'Avisos en Proceso de Atencion de Desague' });
-*/
+            /*
+                        const media2 = await MessageMedia.fromUrl('http://localhost/api-sedapal/barra_des.php');
+                        media.mimetype = "image/png";
+                        media.filename = "desague.png";
+                        await client.sendMessage('51998322450@c.us', media2, { caption: 'Avisos en Proceso de Atencion de Desague' });
+            */
         }
     });
 }
@@ -195,7 +202,7 @@ app.get('/', async function (req, res) {
 app.get("/qr", async function (req, res) {
 
     const estado = await client.getState();
-    if(estado=="CONNECTED"){
+    if (estado == "CONNECTED") {
         res.status(301).redirect("/activo");
         return;
     }
@@ -219,6 +226,35 @@ app.get("/salir", function (req, res) {
     salir(res);
 });
 
+
+
+const avisos_agua = (req, res) => {
+    axios.get(url_avisos_agua)
+        .then(response => {
+                let avisos = [];
+                avisos = response.data.features.map((datos)=>{
+                    const ns = utm.convertUtmToLatLng(datos.geometry.x,datos.geometry.y,18,"");
+                    datos.attributes.gps = ns
+                    //datos.geometry = ns;
+                    return datos.attributes;//[datos.attributes, ];
+                //console.log(datos);
+            });
+            //console.log(response.data.data.children);
+            //const ns = utm.convertUtmToLatLng(response.data.features[0].geometry.x,response.data.features[0].geometry.y,18,"");
+            //response.data.features[0].geometry=ns;
+            //console.log(ns);
+            //res.send(response.data.features);
+            res.send(avisos);
+        })
+        .catch(error => {
+            res.send(error);
+            console.log(error);
+        });
+
+        console.log(new Date().getTime());
+}
+
+app.get("/agua", avisos_agua);
 
 
 
