@@ -42,7 +42,7 @@ async function IniciarConexion2(res) {
     client = new Client({
         authStrategy: new LocalAuth(),
         puppeteer: {
-            headless: false,
+            headless: true,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -106,8 +106,11 @@ const salir = async (res) => {
         //await client.logout();
         client = null;
         console.log("se salio del ws");
+        res.send("Ya se salio del WS");
     } catch (error) {
         console.log("salir error: " + error);
+        console.log(client);
+        res.status(301).redirect("/?no_se_salio_ws");
     }
 }
 
@@ -127,12 +130,12 @@ const listenMessage = async () => {
             media.mimetype = "image/png";
             media.filename = "agua.png";
             await client.sendMessage('51998322450@c.us', media, { caption: 'Avisos en Proceso de Atencion de Agua' });
-
+/*
             const media2 = await MessageMedia.fromUrl('http://localhost/api-sedapal/barra_des.php');
             media.mimetype = "image/png";
             media.filename = "desague.png";
             await client.sendMessage('51998322450@c.us', media2, { caption: 'Avisos en Proceso de Atencion de Desague' });
-
+*/
         }
     });
 }
@@ -191,6 +194,11 @@ app.get('/', async function (req, res) {
 
 app.get("/qr", async function (req, res) {
 
+    const estado = await client.getState();
+    if(estado=="CONNECTED"){
+        res.status(301).redirect("/activo");
+        return;
+    }
     //console.log(req.query);
     qr.toDataURL(qr_text, new Date, function (err, url) {
         if (err) return console.log("error occurred en el qr ", qr_text);
@@ -209,7 +217,6 @@ app.get("/activo", function (req, res) {
 
 app.get("/salir", function (req, res) {
     salir(res);
-    res.send("ya salio");
 });
 
 
