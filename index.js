@@ -1,8 +1,7 @@
-const utmObj = require('utm-latlng');
-const utm=new utmObj('WGS 84');
+
 const { DownloaderHelper } = require('node-downloader-helper');
 const http = require('http');
-const axios = require('axios');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -11,11 +10,11 @@ const fs = require('fs');
 const path = require('path')
 const qrcode = require('qrcode-terminal');
 const qr = require('qrcode');
-const sqlite3 = require('sqlite3').verbose();
-let db = new sqlite3.Database('./db/avisos.db');
+const {avisos_agua, buscar_avisos_agua} = require('./utils/agua');
+const { avisos_desague, buscar_avisos_desague } = require('./utils/desague');
 
-const url_avisos_desague= "https://gisprd.sedapal.com.pe/arcgis/rest/services/Publicaciones/SGIO_SUR/MapServer/3/query?where=NCOD_CENTRO%3D7&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&having=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&queryByDistance=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&f=json";
-const url_avisos_agua= "https://gisprd.sedapal.com.pe/arcgis/rest/services/Publicaciones/SGIO_SUR/MapServer/2/query?where=NCOD_CENTRO%3D7&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&having=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&queryByDistance=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&f=json";
+
+
 
 let client = null;
 var qr_text = null;
@@ -229,65 +228,19 @@ app.get("/salir", function (req, res) {
 
 
 
-const avisos_agua = (req, res) => {
-    axios.get(url_avisos_agua)
-        .then(response => {
-                let avisos = [];
-                avisos = response.data.features.map((datos)=>{
-                    const ns = utm.convertUtmToLatLng(datos.geometry.x,datos.geometry.y,18,"");
-                    delete datos.attributes.ESRI_OID;
-                    delete datos.attributes.T_ATENCION;
-                    delete datos.attributes.F_RESOL;
-                    delete datos.attributes.T_RESOL;
-                    delete datos.attributes.F_FINALIZACION;
-                    delete datos.attributes.T_FINALIZACION;
-                    delete datos.attributes.USUARIO;
-                    delete datos.attributes.USUARIO_GESTOR;
-                    delete datos.attributes.CODIGO_ABASTEC;
-                    delete datos.attributes.NRO_LLAMADAS;
-                    delete datos.attributes.EST_SUMINISTRO;
-                    delete datos.attributes.FRECUENCIA;
-                    delete datos.attributes.TIEMPO;                    
-                    datos.attributes.gpslat = ns.lat;
-                    datos.attributes.gpslng = ns.lng;
-                    //datos.geometry = ns;
-                    let valores = Object.values(datos.attributes); 
-                    let placeholders = valores.map((valores) => '?').join(',');
-                    let key = Object.keys(datos.attributes);
-                    let key_name = key.map((val) => `'${val}'`).join(',');
 
-                    let sql = `INSERT OR REPLACE INTO tbl_avisos(${key_name}) VALUES  (${placeholders})`;                   
-    
-                    db.run(sql, valores, function(err) {
-                        if (err) {
-                          return console.error(err.message);
-                        }
-                        console.log(`Fila Insertada: ${this.changes}`);
-                      });
-                    
-                    
-                    return datos.attributes;//[datos.attributes, ];
-                //console.log(datos);
-            });
-            //console.log(response.data.data.children);
-            //const ns = utm.convertUtmToLatLng(response.data.features[0].geometry.x,response.data.features[0].geometry.y,18,"");
-            //response.data.features[0].geometry=ns;
-            //console.log(ns);
-            //res.send(response.data.features);
-
-            res.send(avisos);
-            
-        })
-        .catch(error => {
-            res.send(error);
-            console.log(error);
-        });
-
-        console.log(new Date().getTime());
-}
 
 app.get("/agua", avisos_agua);
 
+setInterval( async() => {
+    console.log("Buscando avisos de agua "+new Date());
+    await buscar_avisos_agua();
+    console.log("Buscando avisos de desague "+new Date());
+    await buscar_avisos_desague();
+}, 1000*60);
+
+
+app.get("/desague",avisos_desague);
 
 
 http.createServer({
