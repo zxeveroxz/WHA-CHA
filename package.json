@@ -24,6 +24,7 @@
     "qrcode": "^1.5.1",
     "qrcode-terminal": "^0.12.0",
     "request": "^2.88.2",
+    "sqlite3": "^5.0.11",
     "utm-latlng": "^1.0.6",
     "whatsapp-web.js": "^1.12.6"
   }
