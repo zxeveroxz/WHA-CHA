@@ -14,6 +14,7 @@ const avisos_desague = async (req, res) => {
 }
 
 const buscar_avisos_desague = ()=>{
+    console.log("Buscando avisos de desague "+new Date());
     return  axios.get(url_avisos_desague)
         .then(response => {
             let avisos = [];

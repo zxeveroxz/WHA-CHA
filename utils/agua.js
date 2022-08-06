@@ -14,6 +14,7 @@ const avisos_agua = async (req, res) => {
 }
 
 const buscar_avisos_agua = ()=>{
+    console.log("Buscando avisos de agua "+new Date());
     return  axios.get(url_avisos_agua)
         .then(response => {
             let avisos = [];

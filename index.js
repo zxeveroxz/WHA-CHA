@@ -232,10 +232,9 @@ app.get("/salir", function (req, res) {
 
 app.get("/agua", avisos_agua);
 
-setInterval( async() => {
-    console.log("Buscando avisos de agua "+new Date());
+setInterval( async() => {    
     await buscar_avisos_agua();
-    console.log("Buscando avisos de desague "+new Date());
+    
     await buscar_avisos_desague();
 }, 1000*60);
 
