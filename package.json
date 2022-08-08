@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index"
   },
   "keywords": [],
   "author": "",
@@ -27,5 +28,8 @@
     "sqlite3": "^5.0.11",
     "utm-latlng": "^1.0.6",
     "whatsapp-web.js": "^1.12.6"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.19"
   }
 }

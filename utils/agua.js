@@ -32,7 +32,6 @@ const buscar_avisos_agua = ()=>{
                 delete datos.attributes.NRO_LLAMADAS;
                 delete datos.attributes.EST_SUMINISTRO;
                 delete datos.attributes.FRECUENCIA;
-                delete datos.attributes.TIEMPO;
                 datos.attributes.gpslat = ns.lat;
                 datos.attributes.gpslng = ns.lng;
                 //datos.geometry = ns;

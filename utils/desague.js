@@ -31,8 +31,7 @@ const buscar_avisos_desague = ()=>{
                 delete datos.attributes.CODIGO_ABASTEC;
                 delete datos.attributes.NRO_LLAMADAS;
                 delete datos.attributes.EST_SUMINISTRO;
-                delete datos.attributes.FRECUENCIA;
-                delete datos.attributes.TIEMPO;
+                delete datos.attributes.FRECUENCIA;                
                 datos.attributes.gpslat = ns.lat;
                 datos.attributes.gpslng = ns.lng;
                 //datos.geometry = ns;

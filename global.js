@@ -1,0 +1,1 @@
+var estado = 0;
