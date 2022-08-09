@@ -7,8 +7,9 @@ const cors = require('cors');
 const path = require('path')
 
 
+
 const app = express();
-app.set('views', path.join(__dirname , 'views'));
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 
@@ -19,8 +20,8 @@ app.use(bodyParser.json({ limit: '50mb' }));
 
 
 global.sessions = 0;
-global.clienteWS=null;
-global.qrWS=null;
+global.clienteWS = null;
+global.qrWS = null;
 
 //G
 

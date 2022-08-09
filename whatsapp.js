@@ -3,6 +3,8 @@ const qrcode = require('qrcode-terminal');
 const t = require("./utils/textos");
 const textos = new t(); 
 
+const {consulta_nis}= require('./utils/consultas');
+
 let client = null;
 var qr_text = null;
 
@@ -71,10 +73,22 @@ async function IniciarConexion2(req, res) {
         const { from, to, body } = msg;
         console.log(from, to, body);
 
-        if(body.trim().toLowerCase()=="/ayuda"){
-            console.log(body.trim().toLowerCase(),from);
+        let comando = body.trim().toLowerCase();
+
+        if(comando=="/ayuda"){            
             await client.sendMessage(from,textos.ayuda());
         }
+
+        if(comando.substring(0,4)=="/nis"){          
+            console.log("buscnado nis "+comando); 
+            await client.sendMessage(from,"Consultando Nis..."+comando.substring(4,11));
+            let resp = await consulta_nis(comando.substring(4,11));
+            
+            console.log("resp "+resp);
+            //await client.sendMessage(from,resp);
+        }
+
+        
 
         /*
         let iphone = '51981359205@c.us';
