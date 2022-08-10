@@ -84,10 +84,10 @@ async function IniciarConexion2(req, res) {
             let resp = await consulta_nis(comando.substring(4, 11));
 
             //console.log("resp "+resp);
-            await client.sendMessage(from, resp);
-            if (resp != "NIS no encontrado...") {
-                let loca = new Location(-12.123456, 77.5555, "esta es la ubicacion");
-                await client.sendMessage(from, loca);
+            await client.sendMessage(from, (resp=="0"?"NIS no encontrado":resp));
+            if (resp != 0) {
+                console.log(resp,"loscalizacion")                
+                await client.sendMessage(from, new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
             }
 
         }

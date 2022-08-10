@@ -51,7 +51,7 @@ const consulta_nis = async (nis) => {
                 respuesta += dir + dia + med + sec;
                 return respuesta.trim();
             } else {
-                return "NIS no encontrado...";
+                return 0;
             }
 
         })
