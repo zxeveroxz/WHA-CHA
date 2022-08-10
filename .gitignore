@@ -4,3 +4,4 @@ mediaSend/*
 session.json
 fotos
 .wwebjs_auth/*
+*.db

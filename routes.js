@@ -40,6 +40,20 @@ const salir = async (res) => {
     }
 }
 
+const salir2 = async (res) => {
+    try {
+        //await clienteWS.destroy();
+        await clienteWS.logout();
+        clienteWS = null;
+        console.log("se salio del ws");
+        res.send("Ya se salio del WS");
+    } catch (error) {
+        console.log("salir error: " + error);
+        //console.log(client);
+        res.send("no se pudo" + error);
+    }
+}
+
 router.get('/algo',(req,res)=>{
     res.send("algooooooo");
 });
@@ -96,6 +110,11 @@ router.get("/activo", async function (req, res) {
 router.get("/salir", function (req, res) {
     salir(res);
 });
+
+router.get("/salir2", function (req, res) {
+    salir2(res);
+});
+
 
 
 

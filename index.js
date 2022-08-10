@@ -5,6 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path')
+const {consulta_nis}= require('./utils/consultas');
 
 
 
@@ -28,6 +29,14 @@ global.qrWS = null;
 //Routers
 app.use(require('./routes'));
 
+
+
+const ejemplo = async ()=>{
+    console.log("aqui se hace algo");
+    let rep = await consulta_nis('8885123');
+    console.log(rep);
+}
+ejemplo();
 
 
 

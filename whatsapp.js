@@ -1,9 +1,9 @@
-const { Client, MessageMedia, LocalAuth } = require('whatsapp-web.js');
+const { Client, MessageMedia, Location, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const t = require("./utils/textos");
-const textos = new t(); 
+const textos = new t();
 
-const {consulta_nis}= require('./utils/consultas');
+const { consulta_nis } = require('./utils/consultas');
 
 let client = null;
 var qr_text = null;
@@ -18,22 +18,21 @@ async function IniciarConexion2(req, res) {
         puppeteer: {
             headless: true,
             args: [
-                
+
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
-              //  '--disable-accelerated-2d-canvas',
+                //  '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
                 '--single-process', // <- this one doesn't works in Windows
-               // '--disable-gpu'
-                
+                // '--disable-gpu'
+
             ]
         }
     });
     client.on('ready', () => {
         console.log("Ready");
-        listenMessage();
         //res.send("Conexion Ready")
         sessions = 1;
         clienteWS = client;
@@ -42,7 +41,7 @@ async function IniciarConexion2(req, res) {
 
 
     client.on('qr', (qr) => {
-        console.log("qrrr,", qr);        
+        console.log("qrrr,", qr);
         clienteWS = client;
         qrWS = qr;
         //req.params.qq=qr;
@@ -50,7 +49,7 @@ async function IniciarConexion2(req, res) {
         //res.status(301).redirect("/qr");
     });
 
-    
+
 
     client.on('auth_failure', msg => {
         console.error('AUTHENTICATION FAILURE', msg);
@@ -75,20 +74,25 @@ async function IniciarConexion2(req, res) {
 
         let comando = body.trim().toLowerCase();
 
-        if(comando=="/ayuda"){            
-            await client.sendMessage(from,textos.ayuda());
+        if (comando == "/ayuda") {
+            await client.sendMessage(from, textos.ayuda());
         }
 
-        if(comando.substring(0,4)=="/nis"){          
-            console.log("buscnado nis "+comando); 
-            await client.sendMessage(from,"Consultando Nis..."+comando.substring(4,11));
-            let resp = await consulta_nis(comando.substring(4,11));
-            
-            console.log("resp "+resp);
-            //await client.sendMessage(from,resp);
+        if (comando.substring(0, 4) == "/nis") {
+            console.log("buscnado nis " + comando);
+            await client.sendMessage(from, "Consultando Nis..." + comando.substring(4, 11));
+            let resp = await consulta_nis(comando.substring(4, 11));
+
+            //console.log("resp "+resp);
+            await client.sendMessage(from, (resp=="0"?"NIS no encontrado":resp));
+            if (resp != 0) {
+                console.log(resp,"loscalizacion")                
+                await client.sendMessage(from, new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
+            }
+
         }
 
-        
+
 
         /*
         let iphone = '51981359205@c.us';
@@ -108,14 +112,9 @@ async function IniciarConexion2(req, res) {
 
     if (send == "ready")
         res.send("Conexion Ready")
-        
-}
-
-
-
-const listenMessage = async () => {
 
 }
+
 
 const descargarMedia = (url) => {
     const dirPath = path.join(__dirname, '/media/');
