@@ -1,9 +1,9 @@
-const { Client, MessageMedia, Location, LocalAuth } = require('whatsapp-web.js');
+const { Client, MessageMedia, Location,Buttons, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const t = require("./utils/textos");
 const textos = new t();
 
-const { consulta_nis } = require('./utils/consultas');
+const { consulta_nis, consulta_deuda_nis } = require('./utils/consultas');
 
 let client = null;
 var qr_text = null;
@@ -80,16 +80,18 @@ async function IniciarConexion2(req, res) {
 
         if (comando.substring(0, 4) == "/nis") {
             console.log("buscnado nis " + comando);
-            await client.sendMessage(from, "Consultando Nis..." + comando.substring(4, 11));
+ //         await client.sendMessage(from, "Consultando Nis..." + comando.substring(4, 11));
             let resp = await consulta_nis(comando.substring(4, 11));
+            await delay(randomInteger(1,10));
+            await client.sendMessage(from, (resp=="0"?"NIS no encontrado":resp));            
+        }
 
-            //console.log("resp "+resp);
-            await client.sendMessage(from, (resp=="0"?"NIS no encontrado":resp));
-            if (resp != 0) {
-                console.log(resp,"loscalizacion")                
-                await client.sendMessage(from, new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
-            }
-
+        if (comando.substring(0, 4) == "/deu") {
+            console.log("buscnado nis " + comando);
+ //         await client.sendMessage(from, "Consultando Nis..." + comando.substring(4, 11));
+            let resp = await consulta_deuda_nis(comando.substring(4, 11));
+            await delay(randomInteger(1,10));
+            await client.sendMessage(from, (resp=="0"?"NIS no encontrado":resp));            
         }
 
 
@@ -115,6 +117,13 @@ async function IniciarConexion2(req, res) {
 
 }
 
+function delay(time) {
+    return new Promise(resolve => setTimeout(resolve, time*800));
+  }
+
+  function randomInteger(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
 
 const descargarMedia = (url) => {
     const dirPath = path.join(__dirname, '/media/');
