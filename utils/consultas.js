@@ -51,7 +51,6 @@ const consulta_nis = async (nis) => {
 
 }
 
-
 const consulta_deuda_nis = async (nis) => {
     const aut = await TOKEN();
     const url_nis = `https://gisprd.sedapal.com.pe/arcgis/rest/services/movilSGIO/mapserver/4/query?where=SUPPLYID%20in%20(%27${nis}%27)&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=&having=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&queryByDistance=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&f=json&token=${aut.token}`;
@@ -74,7 +73,7 @@ const consulta_deuda_nis = async (nis) => {
                 let respuesta = `*NIS: ${attr2.SUPPLYID}*\n`;
                 let deu = `Deuda: ${attr2.DEUDA}\n`;
                 let est = `Estado: ${attr2.SITUACION}\n`;
-                let med = `Med: ${attr2.NUM_APA}\n`;
+                let med = `Medidor: ${attr2.NUM_APA}\n`;
                 respuesta += deu + est + med;
                 return respuesta.trim();
             } else {
