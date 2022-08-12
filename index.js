@@ -5,7 +5,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path')
-const {consulta_nis,consulta_deuda_nis}= require('./utils/consultas');
+const {consulta_nis,consulta_deuda_nis,listar_agua}= require('./utils/consultas');
 
 
 
@@ -32,12 +32,16 @@ app.use(require('./routes'));
 
 
 const ejemplo = async ()=>{
-    console.log("aqui se hace algo");
     let rep = await consulta_deuda_nis('2525123');
     console.log(rep);
+    listar_agua();
 }
 ejemplo();
 
+
+setInterval( async() => {    
+    listar_agua();
+}, 1000*100);
 
 
 

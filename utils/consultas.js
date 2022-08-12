@@ -1,6 +1,10 @@
 const axios = require('axios');
 const tok = require('../token');
 
+const sqlite3 = require('sqlite3').verbose();
+let db = new sqlite3.Database('./db/avisos.db');
+
+
 const TOKEN = () => {
     const token = new tok({
         host: "",
@@ -86,4 +90,22 @@ const consulta_deuda_nis = async (nis) => {
 
 }
 
-module.exports = { consulta_nis ,consulta_deuda_nis}
+
+const listar_agua=()=>{
+/** 
+    const stmt = db.prepare("INSERT INTO lorem VALUES (?)");
+    for (let i = 0; i < 10; i++) {
+        stmt.run("Ipsum " + i);
+    }
+    stmt.finalize();
+*/
+ 
+    db.each("SELECT * FROM tbl_avisos where TIPO_RED='AGUA'", (err, row) => {
+        let f = new Date(row.F_ALTA);
+        console.log(row.NUM_AVISO + ": " + row.SUMINISTRO+ ": " + row.TIPO_RED+ ": " + f.getDate() +"/" + (f.getMonth()+1));
+    });
+
+}
+
+
+module.exports = { consulta_nis ,consulta_deuda_nis,listar_agua}
