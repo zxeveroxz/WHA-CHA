@@ -100,9 +100,10 @@ const listar_agua=()=>{
     stmt.finalize();
 */
  
-    db.each("SELECT * FROM tbl_avisos where TIPO_RED='AGUA'", (err, row) => {
-        let f = new Date(row.F_ALTA);
-        console.log(row.NUM_AVISO + ": " + row.SUMINISTRO+ ": " + row.TIPO_RED+ ": " + f.getDate() +"/" + (f.getMonth()+1));
+    db.each("SELECT *,DATE(F_ALTA/1000, 'auto') AS F_ALTA,DATE(F_ATENCION/1000, 'auto') AS F_ATENCION FROM tbl_avisos where DATE(F_ALTA/1000, 'auto')='2022-08-10' and TIPO_RED='AGUA'", (err, row) => {
+        //let f = new Date(row.F_ALTA);
+        //console.log(row.NUM_AVISO + ": " + row.SUMINISTRO+ ": " + row.TIPO_RED+ ": " + f.getDate() +"/" + (f.getMonth()+1));
+        console.log(row);
     });
 
 }

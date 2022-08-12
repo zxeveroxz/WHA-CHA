@@ -41,20 +41,16 @@ const buscar_avisos_agua = ()=>{
                 let key_name = key.map((val) => `'${val}'`).join(',');
 
                 let sql = `INSERT OR REPLACE INTO tbl_avisos(${key_name}) VALUES  (${placeholders})`;
-
                 db.run(sql, valores, function (err) {
                     if (err) {
                         return console.error(err.message);
                     }
                     console.log(`Fila Insertada: ${this.changes}`);
-                });
-
-
+                    //console.log(this);
+                });                
                 return datos.attributes;//[datos.attributes, ];
-                //console.log(datos);
             });
           return avisos;
-
         })
         .catch(error => {
             return error;
