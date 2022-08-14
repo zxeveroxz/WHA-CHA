@@ -3,7 +3,7 @@ const qrcode = require('qrcode-terminal');
 const t = require("./utils/textos");
 const textos = new t();
 
-const { consulta_nis, consulta_deuda_nis } = require('./utils/consultas');
+const { consulta_nis, consulta_deuda_nis,listar_historico_agua } = require('./utils/consultas');
 
 let client = null;
 var qr_text = null;
@@ -93,6 +93,19 @@ async function IniciarConexion2(req, res) {
             await delay(randomInteger(1,10));
             await client.sendMessage(from, (resp=="0"?"NIS no encontrado":resp));            
         }
+
+        if (comando.substring(0, 6) == "/aguas") {
+            console.log("buscnado nis " + comando);
+            await delay(randomInteger(1,10));
+            listar_historico_agua('2022-08-08', 2, async (resp) => {
+                const media = await MessageMedia.fromUrl("http://localhost/api-sedapal/agua_historia.php?datos="+encodeURIComponent(JSON.stringify(resp)));
+                media.mimetype = "image/png";
+                media.filename = "agua.png";
+                await client.sendMessage('51998322450@c.us', media, { caption: 'Avisos 2022-08-08 en Proceso de Atencion de Agua' });
+            });
+          
+        }
+
 
 
 

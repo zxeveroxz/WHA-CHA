@@ -5,7 +5,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path')
-const {consulta_nis,consulta_deuda_nis,listar_agua}= require('./utils/consultas');
+const { consulta_nis, consulta_deuda_nis, listar_agua, listar_historico_agua } = require('./utils/consultas');
+const { Console } = require('console');
 
 
 
@@ -31,7 +32,7 @@ app.use(require('./routes'));
 
 
 
-const ejemplo = async ()=>{
+const ejemplo = async () => {
     let rep = await consulta_deuda_nis('2525123');
     console.log(rep);
     listar_agua();
@@ -39,9 +40,19 @@ const ejemplo = async ()=>{
 ejemplo();
 
 
-setInterval( async() => {    
-    listar_agua();
-}, 1000*100);
+setInterval(async () => {
+    listar_historico_agua('2022-08-08', 3, (resp) => {
+      
+        let url = "http://localhost/api-sedapal/agua_historia.php?datos="+encodeURIComponent(JSON.stringify(resp));
+        const dirPath = path.join(__dirname, '/media/');
+
+
+        const dl = new DownloaderHelper(url, dirPath,{fileName: filename => `agua_historia.png`,override: { skip: false, skipSmaller: true },});
+        dl.on('end', () => console.log('Download Completed'));
+        dl.on('error', (err) => console.log('Download Failed', err));
+        dl.start().catch(err => console.error(err));
+    });
+}, 1000 * 4);
 
 
 

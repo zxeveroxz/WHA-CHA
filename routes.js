@@ -122,6 +122,6 @@ setInterval( async() => {
     console.log("buscando nuevos reclamos");
     await buscar_avisos_agua();
     await buscar_avisos_desague();
-}, 1000*30);
+}, 1000*20);
 
 module.exports = router;
