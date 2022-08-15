@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { json } = require('body-parser');
 const tok = require('../token');
 
 const sqlite3 = require('sqlite3').verbose();
@@ -90,9 +91,8 @@ const consulta_deuda_nis = async (nis) => {
 
 }
 
-const listar_historico_agua = async (fecha, turno,callback1) => {
-
-    const que = (fecha, turno,callback) => {
+const listar_historico_agua = async (fecha, turno,callback) => {
+  
         db.serialize(()=> {
             turno--;
             let ini = 0 + (turno * 8);
@@ -112,10 +112,50 @@ const listar_historico_agua = async (fecha, turno,callback1) => {
                         callback(data); 
                     });
         })
-    };
+}
 
-    que(fecha,turno,callback1);
- 
+const listar_historico_desague = async (fecha, turno,callback) => {
+  
+    db.serialize(()=> {
+        turno--;
+        let ini = 0 + (turno * 8);
+        let fin = 7 + (turno * 8);
+        let data = {};
+        return db.each(`SELECT 
+                    MUNICIPALIDAD, count(*) AS TOTAL from avisos_vista 
+                WHERE 
+                    DESAGUE = 1 AND
+                    HORA BETWEEN ${ini} AND  ${fin} AND
+                    F_ALTA = '${fecha}'
+                GROUP BY
+                    MUNICIPALIDAD
+                ORDER BY TOTAL DESC`, function(err, row) {
+                    data[row.MUNICIPALIDAD]=row.TOTAL;
+                }, function(){ // calling function when all rows have been pulled                        
+                    callback(data); 
+                });
+    })
+}
+
+
+const consulta_sanmarcos = async (nis) => {
+    const url = `http://localhost/sanmarcos/final_gps.php`;
+
+    return axios({
+        method: "get",
+        url: url,
+        data: "",
+        headers: { "Content-Type": "multipart/form-data" },
+    })
+        .then(function  (response) {
+            
+            return response.data;
+            
+        })
+        .catch(function (response) {
+            console.log(response);
+        });
+
 }
 
 
@@ -141,4 +181,4 @@ const listar_agua = () => {
 }
 
 
-module.exports = { consulta_nis, consulta_deuda_nis, listar_agua, listar_historico_agua }
+module.exports = { consulta_nis, consulta_deuda_nis, listar_agua, listar_historico_agua ,listar_historico_desague,consulta_sanmarcos}

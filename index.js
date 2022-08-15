@@ -1,11 +1,11 @@
 
-const { DownloaderHelper } = require('node-downloader-helper');
+//const { DownloaderHelper } = require('node-downloader-helper');
 const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path')
-const { consulta_nis, consulta_deuda_nis, listar_agua, listar_historico_agua } = require('./utils/consultas');
+const { consulta_nis, consulta_deuda_nis, listar_agua, listar_historico_agua,consulta_sanmarcos } = require('./utils/consultas');
 const { Console } = require('console');
 
 
@@ -33,30 +33,21 @@ app.use(require('./routes'));
 
 
 const ejemplo = async () => {
-    let rep = await consulta_deuda_nis('2525123');
-    console.log(rep);
-    listar_agua();
+    //listar_agua();
+    let datos_sm=[];
+    let sm = await consulta_sanmarcos();
+
+    for(let x=0;x<sm.tot;x++){
+        let key = sm[x].data[1].replace(/'/g,'')        
+        datos_sm[key]={"id":sm[x].data[0].replace(/'/g,''),
+                        "lat":sm[x].data[2],
+                        "lng":sm[x].data[3],
+                        "fec":sm[x].data[7].replace(/'/g,''),
+                        "tip":sm[x].data[27].replace(/'/g,'')};
+    }
+    console.log(datos_sm['BLJ-730']);
 }
 ejemplo();
-
-
-setInterval(async () => {
-    listar_historico_agua('2022-08-08', 3, (resp) => {
-      
-        let url = "http://localhost/api-sedapal/agua_historia.php?datos="+encodeURIComponent(JSON.stringify(resp));
-        const dirPath = path.join(__dirname, '/media/');
-
-
-        const dl = new DownloaderHelper(url, dirPath,{fileName: filename => `agua_historia.png`,override: { skip: false, skipSmaller: true },});
-        dl.on('end', () => console.log('Download Completed'));
-        dl.on('error', (err) => console.log('Download Failed', err));
-        dl.start().catch(err => console.error(err));
-    });
-}, 1000 * 4);
-
-
-
-
 
 http.createServer({
 }, app).listen(3000, () => {
