@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { json } = require('body-parser');
 const tok = require('../token');
 
 const sqlite3 = require('sqlite3').verbose();
@@ -90,17 +91,88 @@ const consulta_deuda_nis = async (nis) => {
 
 }
 
+const listar_historico_agua = async (fecha, turno,callback) => {
+  
+        db.serialize(()=> {
+            turno--;
+            let ini = 0 + (turno * 8);
+            let fin = 7 + (turno * 8);
+            let data = {};
+            return db.each(`SELECT 
+                        MUNICIPALIDAD, count(*) AS TOTAL from avisos_vista 
+                    WHERE 
+                        AGUA = 1 AND
+                        HORA BETWEEN ${ini} AND  ${fin} AND
+                        F_ALTA = '${fecha}'
+                    GROUP BY
+                        MUNICIPALIDAD
+                    ORDER BY TOTAL DESC`, function(err, row) {
+                        data[row.MUNICIPALIDAD]=row.TOTAL;
+                    }, function(){ // calling function when all rows have been pulled                        
+                        callback(data); 
+                    });
+        })
+}
 
-const listar_agua=()=>{
-/** 
-    const stmt = db.prepare("INSERT INTO lorem VALUES (?)");
-    for (let i = 0; i < 10; i++) {
-        stmt.run("Ipsum " + i);
-    }
-    stmt.finalize();
-*/
- 
-    db.each("SELECT *,DATE(F_ALTA/1000, 'auto') AS F_ALTA,DATE(F_ATENCION/1000, 'auto') AS F_ATENCION FROM tbl_avisos where DATE(F_ALTA/1000, 'auto')='2022-08-10' and TIPO_RED='AGUA'", (err, row) => {
+const listar_historico_desague = async (fecha, turno,callback) => {
+  
+    db.serialize(()=> {
+        turno--;
+        let ini = 0 + (turno * 8);
+        let fin = 7 + (turno * 8);
+        let data = {};
+        return db.each(`SELECT 
+                    MUNICIPALIDAD, count(*) AS TOTAL from avisos_vista 
+                WHERE 
+                    DESAGUE = 1 AND
+                    HORA BETWEEN ${ini} AND  ${fin} AND
+                    F_ALTA = '${fecha}'
+                GROUP BY
+                    MUNICIPALIDAD
+                ORDER BY TOTAL DESC`, function(err, row) {
+                    data[row.MUNICIPALIDAD]=row.TOTAL;
+                }, function(){ // calling function when all rows have been pulled                        
+                    callback(data); 
+                });
+    })
+}
+
+
+const consulta_sanmarcos = async (nis) => {
+    const url = `http://localhost/sanmarcos/final_gps.php`;
+
+    return axios({
+        method: "get",
+        url: url,
+        data: "",
+        headers: { "Content-Type": "multipart/form-data" },
+    })
+        .then(function  (response) {
+            
+            return response.data;
+            
+        })
+        .catch(function (response) {
+            console.log(response);
+        });
+
+}
+
+
+const listar_agua = () => {
+    /** 
+        const stmt = db.prepare("INSERT INTO lorem VALUES (?)");
+        for (let i = 0; i < 10; i++) {
+            stmt.run("Ipsum " + i);
+        }
+        stmt.finalize();
+    */
+    const d = new Date()
+    const mes = (d.getMonth() + 1);
+    const dia = (d.getDate() + (d.getHours() == 0 ? -1 : +0));
+    const hoy = d.getFullYear() + "-" + (mes < 10 ? '0' : '') + mes + "-" + dia;
+
+    db.each("SELECT *,DATE(F_ALTA/1000, 'auto') AS F_ALTA,DATE(F_ATENCION/1000, 'auto') AS F_ATENCION FROM tbl_avisos where DATE(F_ALTA/1000, 'auto')='" + hoy + "' and TIPO_RED='AGUA'", (err, row) => {
         //let f = new Date(row.F_ALTA);
         //console.log(row.NUM_AVISO + ": " + row.SUMINISTRO+ ": " + row.TIPO_RED+ ": " + f.getDate() +"/" + (f.getMonth()+1));
         console.log(row);
@@ -109,4 +181,4 @@ const listar_agua=()=>{
 }
 
 
-module.exports = { consulta_nis ,consulta_deuda_nis,listar_agua}
+module.exports = { consulta_nis, consulta_deuda_nis, listar_agua, listar_historico_agua ,listar_historico_desague,consulta_sanmarcos}

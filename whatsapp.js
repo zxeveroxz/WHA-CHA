@@ -3,7 +3,7 @@ const qrcode = require('qrcode-terminal');
 const t = require("./utils/textos");
 const textos = new t();
 
-const { consulta_nis, consulta_deuda_nis } = require('./utils/consultas');
+const { consulta_nis, consulta_deuda_nis,listar_historico_agua,listar_historico_desague } = require('./utils/consultas');
 
 let client = null;
 var qr_text = null;
@@ -18,7 +18,6 @@ async function IniciarConexion2(req, res) {
         puppeteer: {
             headless: true,
             args: [
-
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
@@ -27,7 +26,6 @@ async function IniciarConexion2(req, res) {
                 '--no-zygote',
                 '--single-process', // <- this one doesn't works in Windows
                 // '--disable-gpu'
-
             ]
         }
     });
@@ -39,7 +37,6 @@ async function IniciarConexion2(req, res) {
         send = "ready";
     });
 
-
     client.on('qr', (qr) => {
         console.log("qrrr,", qr);
         clienteWS = client;
@@ -48,8 +45,6 @@ async function IniciarConexion2(req, res) {
         send = "qr";
         //res.status(301).redirect("/qr");
     });
-
-
 
     client.on('auth_failure', msg => {
         console.error('AUTHENTICATION FAILURE', msg);
@@ -93,6 +88,35 @@ async function IniciarConexion2(req, res) {
             await delay(randomInteger(1,10));
             await client.sendMessage(from, (resp=="0"?"NIS no encontrado":resp));            
         }
+
+        if (comando.substring(0, 6) == "/aguas") {
+            console.log("buscnado nis " + comando);
+            await delay(randomInteger(1,10));
+            let fecha = '2022-08-09';
+            let turno = 2;
+            listar_historico_agua(fecha, turno, async (resp) => {
+                const media = await MessageMedia.fromUrl("http://localhost/api-sedapal/agua_historia.php?turno="+turno+"&fecha="+fecha+"&datos="+encodeURIComponent(JSON.stringify(resp)));
+                media.mimetype = "image/png";
+                media.filename = "historico_agua.png";
+                await client.sendMessage('51998322450@c.us', media, { caption: 'Historico Agua '+fecha });
+            });
+          
+        }
+
+        if (comando.substring(0, 9) == "/desagues") {
+            console.log("buscnado historico desague " + comando);
+            await delay(randomInteger(1,10));
+            let fecha = '2022-08-09';
+            let turno = 2;
+            listar_historico_desague(fecha, turno, async (resp) => {
+                const media = await MessageMedia.fromUrl("http://localhost/api-sedapal/desague_historia.php?turno="+turno+"&fecha="+fecha+"&datos="+encodeURIComponent(JSON.stringify(resp)));
+                media.mimetype = "image/png";
+                media.filename = "historico_desague.png";
+                await client.sendMessage('51998322450@c.us', media, { caption: 'Historico Desague '+fecha });
+            });
+          
+        }
+
 
 
 
