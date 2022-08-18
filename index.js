@@ -41,7 +41,7 @@ const ejemplo = async () => {
     }
     console.log(datos_sm);
 }
-ejemplo();
+//ejemplo();
 
 http.createServer({
 }, app).listen(3000, () => {

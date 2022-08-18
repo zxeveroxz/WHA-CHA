@@ -118,10 +118,13 @@ router.get("/salir2", function (req, res) {
 
 
 
+
+
+
 setInterval( async() => {    
     console.log("buscando nuevos reclamos");
     await buscar_avisos_agua();
     await buscar_avisos_desague();
-}, 1000*20);
+}, 1000*90);
 
 module.exports = router;

@@ -5,6 +5,8 @@ const textos = new t();
 
 const { consulta_nis, consulta_deuda_nis,listar_historico_agua,listar_historico_desague } = require('./utils/consultas');
 
+const {buscar_chat} = require('./chat');
+
 let client = null;
 var qr_text = null;
 
@@ -16,7 +18,7 @@ async function IniciarConexion2(req, res) {
     client = new Client({
         authStrategy: new LocalAuth(),
         puppeteer: {
-            headless: true,
+            headless: true, 
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -116,6 +118,12 @@ async function IniciarConexion2(req, res) {
             });
           
         }
+
+
+        buscar_chat(from,body, async(row)=>{
+            await delay(randomInteger(1,10));
+            await client.sendMessage(from, "Tu  ultimo mensaje fue: "+ row[0].mensaje);
+        });
 
 
 
