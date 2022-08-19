@@ -7,6 +7,8 @@ const { consulta_nis, consulta_deuda_nis,listar_historico_agua,listar_historico_
 
 const {buscar_chat} = require('./chat');
 
+const {foto} = require('./utils/ubicar');
+
 let client = null;
 var qr_text = null;
 
@@ -119,13 +121,21 @@ async function IniciarConexion2(req, res) {
           
         }
 
+        if (comando.substring(0, 6) == "/placa") {
+            console.log("buscnado placa ");
+            await delay(randomInteger(1,10));
+            await foto('BKM-741','-12.2031','-76.9773','camionetaaa');
+        }
 
+        
+
+/**
         buscar_chat(from,body, async(row)=>{
             await delay(randomInteger(1,10));
             await client.sendMessage(from, "Tu  ultimo mensaje fue: "+ row[0].mensaje);
         });
 
-
+*/
 
 
         /*
