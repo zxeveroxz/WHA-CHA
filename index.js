@@ -23,7 +23,7 @@ global.qrWS = null;
 
 //Routers
 app.use(require('./routes'));
-
+/**
 const ejemplo = async () => {
     //listar_agua();
     let datos_sm = [];
@@ -39,9 +39,10 @@ const ejemplo = async () => {
             "tip": sm[x].data[27].replace(/'/g, '')
         };
     }
-    console.log(datos_sm);
+    return datos_sm;
 }
 ejemplo();
+*/
 
 http.createServer({
 }, app).listen(3000, () => {

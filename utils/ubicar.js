@@ -17,11 +17,12 @@ const foto= async(placa,lat,lgn,texo='')=>{
    const browser = await puppeteer.launch({headless: true});
    const page = await browser.newPage();
    await page.setViewport({ width: 1024, height: 768 });
-   await page.goto('https://www.w3schools.com/howto/howto_js_remove_property_object.asp');
-   await page.screenshot({path: placa+'buddy-screenshot.png'});
+   await page.goto('https://www.google.es/maps/place/-12.1485,-76.9695');
+   await page.screenshot({path: placa+'.png'});
 
    await browser.close();
-   console.log("termino");
+   
+   return placa+'.png';
 
 }
 

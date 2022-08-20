@@ -3,7 +3,7 @@ const qrcode = require('qrcode-terminal');
 const t = require("./utils/textos");
 const textos = new t();
 
-const { consulta_nis, consulta_deuda_nis,listar_historico_agua,listar_historico_desague } = require('./utils/consultas');
+const { consulta_nis, consulta_deuda_nis,listar_historico_agua,listar_historico_desague,consulta_sanmarcos } = require('./utils/consultas');
 
 const {buscar_chat} = require('./chat');
 
@@ -11,6 +11,26 @@ const {foto} = require('./utils/ubicar');
 
 let client = null;
 var qr_text = null;
+
+
+const carros = async () => {
+    //listar_agua();
+    let datos_sm = [];
+    let sm = await consulta_sanmarcos();
+
+    for (let x = 0; x < sm.tot; x++) {
+        let key = sm[x].data[1].replace(/'/g, '')
+        datos_sm[key] = {
+            "id": sm[x].data[0].replace(/'/g, ''),
+            "lat": sm[x].data[2],
+            "lng": sm[x].data[3],
+            "fec": sm[x].data[7].replace(/'/g, ''),
+            "tip": sm[x].data[27].replace(/'/g, '')
+        };
+    }
+    return datos_sm;
+}
+
 
 async function IniciarConexion2(req, res) {
 
@@ -125,6 +145,19 @@ async function IniciarConexion2(req, res) {
             console.log("buscnado placa ");
             await delay(randomInteger(1,10));
             await foto('BKM-741','-12.2031','-76.9773','camionetaaa');
+        }
+
+        if (comando.substring(0, 6) == "/carro") {
+            console.log("buscnado carro ");
+            await delay(randomInteger(1,10));
+            await client.sendMessage(from,"Buscando los carros de San Marcos");
+            let car = await carros();
+            let key = Object.keys(car);
+            //console.log(key);
+           let todo = key.join("|");
+           //console.log(todo);
+           await delay(randomInteger(1,20));
+           await client.sendMessage(from,todo);
         }
 
         
