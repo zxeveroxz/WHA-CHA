@@ -7,7 +7,7 @@ const { consulta_nis, consulta_deuda_nis,listar_historico_agua,listar_historico_
 
 const {buscar_chat} = require('./chat');
 
-const {foto} = require('./utils/ubicar');
+const {foto,listar_carros} = require('./utils/ubicar');
 
 let client = null;
 var qr_text = null;
@@ -15,11 +15,16 @@ var qr_text = null;
 
 const carros = async () => {
     //listar_agua();
-    let datos_sm = [];
+
+    try {
+        let datos_sm = [];
     let sm = await consulta_sanmarcos();
 
     for (let x = 0; x < sm.tot; x++) {
         let key = sm[x].data[1].replace(/'/g, '')
+        if(key=='BXK-176' ||key=='BTV-155' ||key=='AZB-936' ||key=='BXH-089' ||key=='AZY-895' ||key=='BNI-298')
+            continue;
+
         datos_sm[key] = {
             "id": sm[x].data[0].replace(/'/g, ''),
             "lat": sm[x].data[2],
@@ -28,7 +33,15 @@ const carros = async () => {
             "tip": sm[x].data[27].replace(/'/g, '')
         };
     }
+
+   
     return datos_sm;
+        
+    } catch (error) {
+        console.log(error);
+        return [];
+    }
+    
 }
 
 
@@ -144,16 +157,22 @@ async function IniciarConexion2(req, res) {
         if (comando.substring(0, 6) == "/placa") {
             console.log("buscnado placa ");
             await delay(randomInteger(1,10));
+            await listar_carros('BKM-741',(resp)=>console.log(resp));
             await foto('BKM-741','-12.2031','-76.9773','camionetaaa');
+            await delay(randomInteger(1,10));
+            const media = await MessageMedia.fromFilePath('BKM-741.png');
+                media.mimetype = "image/png";
+                media.filename = "placa_.png";
+            await client.sendMessage(from, media);
         }
 
         if (comando.substring(0, 6) == "/carro") {
             console.log("buscnado carro ");
             await delay(randomInteger(1,10));
-            await client.sendMessage(from,"Buscando los carros de San Marcos");
+            await client.sendMessage(from,"Buscando los carros de San Marcos ");
             let car = await carros();
             let key = Object.keys(car);
-            //console.log(key);
+            console.log(key);
            let todo = key.join("|");
            //console.log(todo);
            await delay(randomInteger(1,20));
