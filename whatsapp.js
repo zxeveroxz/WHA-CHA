@@ -1,13 +1,13 @@
-const { Client, MessageMedia, Location,Buttons, LocalAuth } = require('whatsapp-web.js');
+const { Client, MessageMedia, Location, Buttons, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const t = require("./utils/textos");
 const textos = new t();
 
-const { consulta_nis, consulta_deuda_nis,listar_historico_agua,listar_historico_desague,consulta_sanmarcos } = require('./utils/consultas');
+const { consulta_nis, consulta_deuda_nis, listar_historico_agua, listar_historico_desague, consulta_sanmarcos } = require('./utils/consultas');
 
-const {buscar_chat} = require('./chat');
+const { buscar_chat } = require('./chat');
 
-const {foto,listar_carros} = require('./utils/ubicar');
+const { foto, listar_carros, aleatorio_carros } = require('./utils/ubicar');
 
 let client = null;
 var qr_text = null;
@@ -18,30 +18,30 @@ const carros = async () => {
 
     try {
         let datos_sm = [];
-    let sm = await consulta_sanmarcos();
+        let sm = await consulta_sanmarcos();
 
-    for (let x = 0; x < sm.tot; x++) {
-        let key = sm[x].data[1].replace(/'/g, '')
-        if(key=='BXK-176' ||key=='BTV-155' ||key=='AZB-936' ||key=='BXH-089' ||key=='AZY-895' ||key=='BNI-298')
-            continue;
+        for (let x = 0; x < sm.tot; x++) {
+            let key = sm[x].data[1].replace(/'/g, '')
+            if (key == 'BXK-176' || key == 'BTV-155' || key == 'AZB-936' || key == 'BXH-089' || key == 'AZY-895' || key == 'BNI-298')
+                continue;
 
-        datos_sm[key] = {
-            "id": sm[x].data[0].replace(/'/g, ''),
-            "lat": sm[x].data[2],
-            "lng": sm[x].data[3],
-            "fec": sm[x].data[7].replace(/'/g, ''),
-            "tip": sm[x].data[27].replace(/'/g, '')
-        };
-    }
+            datos_sm[key] = {
+                "id": sm[x].data[0].replace(/'/g, ''),
+                "lat": sm[x].data[2],
+                "lng": sm[x].data[3],
+                "fec": sm[x].data[7].replace(/'/g, ''),
+                "tip": sm[x].data[27].replace(/'/g, '')
+            };
+        }
 
-   
-    return datos_sm;
-        
+
+        return datos_sm;
+
     } catch (error) {
         console.log(error);
         return [];
     }
-    
+
 }
 
 
@@ -53,7 +53,7 @@ async function IniciarConexion2(req, res) {
     client = new Client({
         authStrategy: new LocalAuth(),
         puppeteer: {
-            headless: true, 
+            headless: true,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -112,51 +112,63 @@ async function IniciarConexion2(req, res) {
 
         if (comando.substring(0, 4) == "/nis") {
             console.log("buscnado nis " + comando);
- //         await client.sendMessage(from, "Consultando Nis..." + comando.substring(4, 11));
+            //         await client.sendMessage(from, "Consultando Nis..." + comando.substring(4, 11));
             let resp = await consulta_nis(comando.substring(4, 11));
-            await delay(randomInteger(1,10));
-            await client.sendMessage(from, (resp=="0"?"NIS no encontrado":resp));            
+            await delay(randomInteger(1, 10));
+            await client.sendMessage(from, (resp == "0" ? "NIS no encontrado" : resp));
         }
 
         if (comando.substring(0, 4) == "/deu") {
             console.log("buscnado nis " + comando);
- //         await client.sendMessage(from, "Consultando Nis..." + comando.substring(4, 11));
+            //         await client.sendMessage(from, "Consultando Nis..." + comando.substring(4, 11));
             let resp = await consulta_deuda_nis(comando.substring(4, 11));
-            await delay(randomInteger(1,10));
-            await client.sendMessage(from, (resp=="0"?"NIS no encontrado":resp));            
+            await delay(randomInteger(1, 10));
+            await client.sendMessage(from, (resp == "0" ? "NIS no encontrado" : resp));
         }
 
         if (comando.substring(0, 6) == "/aguas") {
             console.log("buscnado nis " + comando);
-            await delay(randomInteger(1,10));
+            await delay(randomInteger(1, 10));
             let fecha = '2022-08-09';
             let turno = 2;
             listar_historico_agua(fecha, turno, async (resp) => {
-                const media = await MessageMedia.fromUrl("http://localhost/api-sedapal/agua_historia.php?turno="+turno+"&fecha="+fecha+"&datos="+encodeURIComponent(JSON.stringify(resp)));
+                const media = await MessageMedia.fromUrl("http://localhost/api-sedapal/agua_historia.php?turno=" + turno + "&fecha=" + fecha + "&datos=" + encodeURIComponent(JSON.stringify(resp)));
                 media.mimetype = "image/png";
                 media.filename = "historico_agua.png";
-                await client.sendMessage('51998322450@c.us', media, { caption: 'Historico Agua '+fecha });
+                await client.sendMessage('51998322450@c.us', media, { caption: 'Historico Agua ' + fecha });
             });
-          
+
         }
 
         if (comando.substring(0, 9) == "/desagues") {
             console.log("buscnado historico desague " + comando);
-            await delay(randomInteger(1,10));
+            await delay(randomInteger(1, 10));
             let fecha = '2022-08-09';
             let turno = 2;
             listar_historico_desague(fecha, turno, async (resp) => {
-                const media = await MessageMedia.fromUrl("http://localhost/api-sedapal/desague_historia.php?turno="+turno+"&fecha="+fecha+"&datos="+encodeURIComponent(JSON.stringify(resp)));
+                const media = await MessageMedia.fromUrl("http://localhost/api-sedapal/desague_historia.php?turno=" + turno + "&fecha=" + fecha + "&datos=" + encodeURIComponent(JSON.stringify(resp)));
                 media.mimetype = "image/png";
                 media.filename = "historico_desague.png";
-                await client.sendMessage('51998322450@c.us', media, { caption: 'Historico Desague '+fecha });
+                await client.sendMessage('51998322450@c.us', media, { caption: 'Historico Desague ' + fecha });
             });
-          
+
         }
 
         if (comando.substring(0, 6) == "/placa") {
             console.log("buscnado placa ");
-            await delay(randomInteger(1,10));
+            await delay(randomInteger(1, 10));
+            await aleatorio_carros(async (row) => {
+                await listar_carros(row, async (resp) => {
+                    await foto(resp.placa, resp.lat, resp.lng, resp.tip);
+                    await delay(randomInteger(1, 10));
+                    let name = resp.placa+".png";
+                    const media = await MessageMedia.fromFilePath(name);
+                    media.mimetype = "image/png";
+                    media.filename = name;
+                    await client.sendMessage(from, media); 
+                });
+            });
+            /*
             await listar_carros('BKM-741',(resp)=>console.log(resp));
             await foto('BKM-741','-12.2031','-76.9773','camionetaaa');
             await delay(randomInteger(1,10));
@@ -164,30 +176,31 @@ async function IniciarConexion2(req, res) {
                 media.mimetype = "image/png";
                 media.filename = "placa_.png";
             await client.sendMessage(from, media);
+            */
         }
 
         if (comando.substring(0, 6) == "/carro") {
             console.log("buscnado carro ");
-            await delay(randomInteger(1,10));
-            await client.sendMessage(from,"Buscando los carros de San Marcos ");
+            await delay(randomInteger(1, 10));
+            await client.sendMessage(from, "Buscando los carros de San Marcos ");
             let car = await carros();
             let key = Object.keys(car);
             console.log(key);
-           let todo = key.join("|");
-           //console.log(todo);
-           await delay(randomInteger(1,20));
-           await client.sendMessage(from,todo);
+            let todo = key.join("|");
+            //console.log(todo);
+            await delay(randomInteger(1, 20));
+            await client.sendMessage(from, todo);
         }
 
+
+
+        /**
+                buscar_chat(from,body, async(row)=>{
+                    await delay(randomInteger(1,10));
+                    await client.sendMessage(from, "Tu  ultimo mensaje fue: "+ row[0].mensaje);
+                });
         
-
-/**
-        buscar_chat(from,body, async(row)=>{
-            await delay(randomInteger(1,10));
-            await client.sendMessage(from, "Tu  ultimo mensaje fue: "+ row[0].mensaje);
-        });
-
-*/
+        */
 
 
         /*
@@ -212,12 +225,12 @@ async function IniciarConexion2(req, res) {
 }
 
 function delay(time) {
-    return new Promise(resolve => setTimeout(resolve, time*800));
-  }
+    return new Promise(resolve => setTimeout(resolve, time * 800));
+}
 
-  function randomInteger(min, max) {
+function randomInteger(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+}
 
 const descargarMedia = (url) => {
     const dirPath = path.join(__dirname, '/media/');

@@ -45,7 +45,7 @@ const buscar_avisos_agua = ()=>{
                     if (err) {
                         return console.error(err.message);
                     }
-                    console.log(`Fila Insertada: ${this.changes}`);
+                    //console.log(`Fila Insertada: ${this.changes}`);
                     //console.log(this);
                 });                
                 return datos.attributes;//[datos.attributes, ];

@@ -2,9 +2,10 @@ const express  = require("express");
 const router = express.Router();
 const {buscar_avisos_agua,avisos_agua} = require('./utils/agua');
 const {buscar_avisos_desague,avisos_desague } = require('./utils/desague');
-const {consulta_sanmarcos} = require('./utils/ubicar');
+const {consulta_sanmarcos,aleatorio_carros} = require('./utils/ubicar');
 const {client,IniciarConexion2} = require('./whatsapp');
 const qr = require('qrcode');
+const {randomInteger} = require('./utils/ayudas');
 
 const t = require("./utils/textos");
 const textos = new t(); 
@@ -116,6 +117,12 @@ router.get("/salir2", function (req, res) {
     salir2(res);
 });
 
+
+router.get("/demo", function (req, res) {
+    aleatorio_carros((row)=>{        
+        res.send(row);
+    })
+});
 
 
 

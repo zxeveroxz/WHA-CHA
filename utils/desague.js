@@ -46,7 +46,7 @@ const buscar_avisos_desague = ()=>{
                     if (err) {
                         return console.error(err.message);
                     }
-                    console.log(`Fila Insertada de Desague: ${this.changes}`);
+                    //console.log(`Fila Insertada de Desague: ${this.changes}`);
                 });
 
 

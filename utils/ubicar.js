@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer');
 const axios = require('axios');
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./db/avisos.db');
+const {randomInteger} = require('./ayudas');
 
 /*
 (async () => {
@@ -48,8 +49,10 @@ const consulta_sanmarcos = async () => {
                if (err) {
                   return console.error(err.message);
                }
-               console.log(`Fila Insertada caroo: ${this.changes}`);
+              
+               //console.log(`Fila Insertada caroo: ${this.changes}`);
             });
+           
          }
       })
       .catch(function (response) {
@@ -58,7 +61,6 @@ const consulta_sanmarcos = async () => {
 }
 
 const listar_carros = async (placa, callback) => {
-
    db.serialize(() => {
       let data = {};
       return db.each(`SELECT 
@@ -79,7 +81,21 @@ const listar_carros = async (placa, callback) => {
 }
 
 
-
+const aleatorio_carros = async (callback) => {
+   db.serialize(() => {
+      let data = [];
+      return db.each(`SELECT 
+                              * 
+                        FROM 
+                              carros_vista  
+                        `, function (err, row) {
+         data.push(row.placa);
+      }, function () { // calling function when all rows have been pulled         
+         let key = randomInteger(0,data.length-1);              
+         callback(data[key]);
+      });
+   })
+}
 
 
 const buscar_carros = async () => {
@@ -108,17 +124,15 @@ const buscar_carros = async () => {
 
 }
 
-const foto = async (placa, lat, lgn, texo = '') => {
+const foto = async (placa, lat, lng, texo = '') => {
    const browser = await puppeteer.launch({ headless: true });
    const page = await browser.newPage();
    await page.setViewport({ width: 800, height: 600 });
-   await page.goto('http://localhost/open2/foto.php?lat=-12.1485&lng=-76.9695',{timeout: 30000, waitUntil: 'networkidle0' });
+   await page.goto(`http://localhost/open2/foto.php?lat=${lat}&lng=${lng}`, { timeout: 30000, waitUntil: 'networkidle0' });
    await page.screenshot({ path: placa + '.png' });
-
    await browser.close();
-
    return placa + '.png';
 
 }
 
-module.exports = { foto, consulta_sanmarcos,listar_carros,buscar_carros };
+module.exports = { foto, consulta_sanmarcos, listar_carros, buscar_carros,aleatorio_carros };
