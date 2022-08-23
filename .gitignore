@@ -5,4 +5,4 @@ session.json
 fotos
 .wwebjs_auth/*
 
-
+./tmp/*.png
