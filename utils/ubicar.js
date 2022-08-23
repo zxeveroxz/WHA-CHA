@@ -3,6 +3,7 @@ const axios = require('axios');
 const sqlite3 = require('sqlite3').verbose();
 let db = new sqlite3.Database('./db/avisos.db');
 const {randomInteger} = require('./ayudas');
+const path = require('path');
 
 /*
 (async () => {
@@ -127,11 +128,12 @@ const buscar_carros = async () => {
 const foto = async (placa, lat, lng, texo = '') => {
    const browser = await puppeteer.launch({ headless: true });
    const page = await browser.newPage();
-   await page.setViewport({ width: 800, height: 600 });
-   await page.goto(`http://localhost/open2/foto.php?lat=${lat}&lng=${lng}`, { timeout: 30000, waitUntil: 'networkidle0' });
-   await page.screenshot({ path: placa + '.png' });
+   await page.setViewport({ width: 400, height: 600 }); 
+   await page.goto(`http://localhost/open2/foto.php?lat=${lat}&lng=${lng}&placa=${placa}`, { timeout: 30000, waitUntil: 'networkidle0' });
+   let name = placa+'.png';
+   await page.screenshot({ path: path.join(RAIZ,'tmp',name)});
    await browser.close();
-   return placa + '.png';
+   return name;
 
 }
 

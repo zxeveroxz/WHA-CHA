@@ -20,6 +20,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 global.sessions = 0;
 global.clienteWS = null;
 global.qrWS = null;
+global.RAIZ = __dirname;
 
 //Routers
 app.use(require('./routes'));

@@ -1,6 +1,7 @@
 const { Client, MessageMedia, Location, Buttons, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const t = require("./utils/textos");
+const path = require("path");
 const textos = new t();
 
 const { consulta_nis, consulta_deuda_nis, listar_historico_agua, listar_historico_desague, consulta_sanmarcos } = require('./utils/consultas');
@@ -162,7 +163,7 @@ async function IniciarConexion2(req, res) {
                     await foto(resp.placa, resp.lat, resp.lng, resp.tip);
                     await delay(randomInteger(1, 10));
                     let name = resp.placa+".png";
-                    const media = await MessageMedia.fromFilePath(name);
+                    const media = await MessageMedia.fromFilePath(path.join(RAIZ,"tmp",name));
                     media.mimetype = "image/png";
                     media.filename = name;
                     await client.sendMessage(from, media); 
