@@ -14,9 +14,9 @@ const avisos_agua = async (req, res) => {
 }
 
 const buscar_avisos_agua = ()=>{
-    console.log("Buscando avisos de agua "+new Date());
+    //console.log("Buscando avisos de agua "+new Date());
     return  axios.get(url_avisos_agua)
-        .then(response => {
+        .then(async (response) => {
             let avisos = [];
             avisos = response.data.features.map((datos) => {
                 const ns = utm.convertUtmToLatLng(datos.geometry.x, datos.geometry.y, 18, "");
@@ -50,12 +50,27 @@ const buscar_avisos_agua = ()=>{
                 });                
                 return datos.attributes;//[datos.attributes, ];
             });
+
+            await crear_alerta();
+
           return avisos;
         })
         .catch(error => {
             return error;
             console.log(error);
         });
+}
+
+const crear_alerta = () => {
+    const d = new Date()
+    const mes = (d.getMonth() + 1);
+    const dia = (d.getDate() + (d.getHours() == 0 ? -1 : +0));
+    const hoy = d.getFullYear() + "-" + (mes < 10 ? '0' : '') + mes + "-" + dia;
+
+    db.each("SELECT * FROM avisos_vista where DATE(F_ALTA)='" + hoy + "' and TIPO_RED='AGUA'", (err, row) => {        
+        console.log(row);
+    });
+
 }
 
 

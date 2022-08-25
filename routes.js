@@ -82,8 +82,6 @@ router.get('/', async function (req, res) {
 });
 
 router.get("/qr", async function (req, res) {
-
-    //console.log(clienteWS);
     if(clienteWS==null ){
         console.log("redirigimos al iniciio");
         res.redirect("/");
@@ -130,11 +128,13 @@ router.get("/demo", function (req, res) {
 
 
 setInterval( async() => {    
-    console.log("buscando nuevos reclamos");
     await buscar_avisos_agua();
     await buscar_avisos_desague();
-    await consulta_sanmarcos();
+}, 1000*10);
 
-}, 1000*20);
+
+setInterval( async() => {    
+    await consulta_sanmarcos();
+}, 1000*60);
 
 module.exports = router;

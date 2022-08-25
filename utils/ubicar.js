@@ -32,7 +32,7 @@ const consulta_sanmarcos = async () => {
          let datos_sm = [];
          for (let x = 0; x < sm.tot; x++) {
             let key = sm[x].data[1].replace(/'/g, '')
-            if (key == 'BXK-176' || key == 'BTV-155' || key == 'AZB-936' || key == 'BXH-089' || key == 'AZY-895' || key == 'BNI-298')
+            if (key == 'BXK-176' || key == 'BTV-155' || key == 'AZB-936' || key == 'BXH-089' || key == 'AZY-895' || key == 'BNI-298' || key =='BNN-445')
                continue;
 
             datos_sm[key] = {
@@ -124,7 +124,6 @@ const buscar_carros = async () => {
    }
 
 }
-
 const foto = async (placa, lat, lng, texo = '') => {
    const browser = await puppeteer.launch({ headless: true });
    const page = await browser.newPage();

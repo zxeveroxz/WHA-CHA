@@ -1,12 +1,9 @@
-
-//const { DownloaderHelper } = require('node-downloader-helper');
 const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path')
 const { consulta_nis, consulta_deuda_nis, listar_agua, listar_historico_agua, consulta_sanmarcos } = require('./utils/consultas');
-const { Console } = require('console');
 
 const app = express();
 app.set('views', path.join(__dirname, 'views'));
@@ -24,26 +21,7 @@ global.RAIZ = __dirname;
 
 //Routers
 app.use(require('./routes'));
-/**
-const ejemplo = async () => {
-    //listar_agua();
-    let datos_sm = [];
-    let sm = await consulta_sanmarcos();
 
-    for (let x = 0; x < sm.tot; x++) {
-        let key = sm[x].data[1].replace(/'/g, '')
-        datos_sm[key] = {
-            "id": sm[x].data[0].replace(/'/g, ''),
-            "lat": sm[x].data[2],
-            "lng": sm[x].data[3],
-            "fec": sm[x].data[7].replace(/'/g, ''),
-            "tip": sm[x].data[27].replace(/'/g, '')
-        };
-    }
-    return datos_sm;
-}
-ejemplo();
-*/
 
 http.createServer({
 }, app).listen(3000, () => {
